@@ -1,0 +1,32 @@
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+*.local
+
+# Backend build outputs & bytecode
+target/
+backend/target/
+*.class
+*.jar
+*.war
+
+# Frontend dependencies & build outputs
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+dist-ssr/
+
+# IDE & Editor files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Storage and runtime data
+data/
+logs/
+*.log
+.system_generated/

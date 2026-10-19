@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        jdbc:
+          time_zone: Asia/Kolkata
+  flyway:
+    enabled: false
+
+app:
+  jwt:
+    secret: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 604800000
+    cookie-name: refresh_token
+  storage:
+    path: ./target/test-data/images
+    seed-path: ./seed-images
+  cors:
+    allowed-origins: http://localhost:5173
+  rate-limit:
+    auth-capacity: 100
+    auth-refill-tokens: 100
+    auth-refill-duration-minutes: 1
+    booking-capacity: 100
+    booking-refill-tokens: 100
+    booking-refill-duration-minutes: 1
+    upload-capacity: 100
+    upload-refill-tokens: 100
+    upload-refill-duration-minutes: 1

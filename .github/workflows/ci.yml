@@ -1,0 +1,84 @@
+name: StayKart CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend:
+    name: Backend Build & Verify
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: staykart
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: secret_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Run Backend Tests & Verify Build
+        working-directory: backend
+        env:
+          SPRING_DATASOURCE_USERNAME: test_user
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD || 'secret_password' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'test_dummy_jwt_secret_key_for_ci_build_only_64_bytes_minimum_length_here_abc123' }}
+        run: ./mvnw -B verify
+
+      - name: OWASP Dependency Check
+        working-directory: backend
+        run: ./mvnw -B org.owasp:dependency-check-maven:check -DfailOnError=false
+
+  frontend:
+    name: Frontend Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Run Frontend Tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Build Frontend Production Bundle
+        working-directory: frontend
+        run: npm run build
+
+      - name: Verify Image Integrity
+        run: node scripts/verify_images.mjs
+
+      - name: Audit Frontend Dependencies
+        working-directory: frontend
+        run: npm audit --audit-level=high || true
